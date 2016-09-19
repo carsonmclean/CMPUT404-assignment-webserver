@@ -16,6 +16,7 @@ server.py contains contributions from:
 
 * Abram Hindle
 * Eddie Antonio Santos
+* Carson McLean
 
 server.py contains collaboration from:
 
