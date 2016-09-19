@@ -48,6 +48,11 @@ class MyWebServer(SocketServer.BaseRequestHandler):
     def _create_headers(self):
         return "HTTP/1.1 200 OK\r\n"
 
+    def _send_404(self, requested_resource):
+        headers = "HTTP/1.1 404 Not Found\r\n"
+
+        self.request.send(headers)
+
     def handle(self):
         self.data = self.request.recv(1024).strip()
         log.debug("Got a request of: %s\n" % self.data)
@@ -57,14 +62,14 @@ class MyWebServer(SocketServer.BaseRequestHandler):
         adjusted_resource = self._adjust_resource(requested_resource)
 
         if (self._verify_resource(adjusted_resource)):
-            log.debug(adjusted_resource)
-
-            resource = open(adjusted_resource).read()
-
-            headers = self._create_headers()
-
-            self.request.send(headers + resource)
-
+            try:
+                resource = open(adjusted_resource).read()
+                headers = self._create_headers()
+                self.request.send(headers + resource)
+            except:
+                self._send_404(requested_resource)
+        else:
+            self._send_404(requested_resource)
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
