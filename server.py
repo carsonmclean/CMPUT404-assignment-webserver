@@ -55,15 +55,15 @@ class MyWebServer(SocketServer.BaseRequestHandler):
 
     def _get_mime(self, adjusted_resource):
         if (adjusted_resource[-4:] == ".css"):
-            return "Content Type: text/css\r\n"
+            return "Content-Type: text/css\r\n"
         elif (adjusted_resource[-5:] == ".html"):
-            return "Content Type: text/html\r\n"
+            return "Content-Type: text/html\r\n"
         else:
             return "Content Type: \r\n"
 
     def handle(self):
         self.data = self.request.recv(1024).strip()
-        log.debug("Got a request of: %s\n" % self.data)
+        #log.debug("Got a request of: %s\n" % self.data)
 
         split_data = self.data.split(" ")
         requested_resource = split_data[1]
