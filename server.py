@@ -43,6 +43,9 @@ class MyWebServer(SocketServer.BaseRequestHandler):
         else:
             return requested_resource
 
+    def _create_headers(self):
+        return "HTTP/1.1 200 OK\r\n"
+
     def handle(self):
         self.data = self.request.recv(1024).strip()
         log.debug("Got a request of: %s\n" % self.data)
@@ -56,7 +59,9 @@ class MyWebServer(SocketServer.BaseRequestHandler):
 
             resource = open(adjusted_resource).read()
 
-            self.request.send(resource)
+            headers = self._create_headers()
+
+            self.request.send(headers + resource)
 
 
 if __name__ == "__main__":
