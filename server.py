@@ -47,13 +47,15 @@ class MyWebServer(SocketServer.BaseRequestHandler):
         return "HTTP/1.1 200 OK\r\n"
 
     def _send_404(self, requested_resource):
-        headers = "HTTP/1.1 404 Not Found\r\n\r\n"
+        headers = "HTTP/1.1 404 Not Found\r\n"
+
+        close = "Connection: close\r\n\r\n"
 
         body = ("<html>\n<body>404 - Could not find resource at "
                 + requested_resource
                 + " </body>\n</html>")
 
-        self.request.send(headers + body)
+        self.request.send(headers + close + body)
 
     def _get_mime(self, adjusted_resource):
         if (adjusted_resource[-4:] == ".css"):
@@ -65,9 +67,10 @@ class MyWebServer(SocketServer.BaseRequestHandler):
 
     def _send_302(self, requested_resource):
         headers = "HTTP/1.1 302 Found\r\n"
-        location = "Location: http://127.0.0.1:8080" + requested_resource + "index.html\r\n\r\n"
+        location = "Location: http://127.0.0.1:8080" + requested_resource + "index.html\r\n"
+        close = "Connection: close\r\n\r\n"
 
-        self.request.send(headers + location)
+        self.request.send(headers + location + close)
 
     def handle(self):
         self.data = self.request.recv(1024).strip()
@@ -87,7 +90,9 @@ class MyWebServer(SocketServer.BaseRequestHandler):
 
                 content_type = self._get_mime(adjusted_resource)
 
-                self.request.send(headers + content_type + "\r\n\r\n" + resource)
+                close = "Connection: close\r\n\r\n"
+
+                self.request.send(headers + content_type + close + resource)
             except:
                 self._send_404(requested_resource)
         else:
