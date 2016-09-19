@@ -34,10 +34,12 @@ log = logging.getLogger('server.py')
 class MyWebServer(SocketServer.BaseRequestHandler):
 
     def _verify_resource(self, requested_resource):
-        return True
+        current_directory = os.path.abspath(os.curdir)
+        return os.path.abspath(requested_resource).startswith(current_directory)
 
     def _adjust_resource(self, requested_resource):
-        requested_resource = "www" + requested_resource
+        current_directory = os.path.abspath(os.curdir)
+        requested_resource = current_directory + "/www" + requested_resource
         if (requested_resource.endswith("/")):
             return requested_resource + "index.html"
         else:
@@ -52,9 +54,9 @@ class MyWebServer(SocketServer.BaseRequestHandler):
 
         split_data = self.data.split(" ")
         requested_resource = split_data[1]
+        adjusted_resource = self._adjust_resource(requested_resource)
 
-        if (self._verify_resource(requested_resource)):
-            adjusted_resource = self._adjust_resource(requested_resource)
+        if (self._verify_resource(adjusted_resource)):
             log.debug(adjusted_resource)
 
             resource = open(adjusted_resource).read()
