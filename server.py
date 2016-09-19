@@ -33,7 +33,7 @@ log = logging.getLogger('server.py')
 
 class MyWebServer(SocketServer.BaseRequestHandler):
 
-    def _verify_resource(self, requested_resource):
+    def _check_resource_location(self, requested_resource):
         current_directory = os.path.abspath(os.curdir)
         data_directory = current_directory + "/www"
         return os.path.abspath(requested_resource).startswith(data_directory)
@@ -72,6 +72,9 @@ class MyWebServer(SocketServer.BaseRequestHandler):
 
         self.request.send(headers + location + close)
 
+    def _handle_directory_redirect(self, adjusted_resource):
+        return os.path.isdir(adjusted_resource)
+
     def handle(self):
         self.data = self.request.recv(1024).strip()
         #log.debug("Got a request of: %s\n" % self.data)
@@ -82,19 +85,22 @@ class MyWebServer(SocketServer.BaseRequestHandler):
         if (adjusted_resource.endswith("/")):
             self._send_302(requested_resource)
 
-        elif (self._verify_resource(adjusted_resource)):
-            try:
-                resource = open(adjusted_resource).read()
+        elif (self._check_resource_location(adjusted_resource)):
+            if (self._handle_directory_redirect(adjusted_resource)):
+                self._send_302(requested_resource + "/")
+            else:
+                try:
+                    resource = open(adjusted_resource).read()
 
-                headers = self._create_headers()
+                    headers = self._create_headers()
 
-                content_type = self._get_mime(adjusted_resource)
+                    content_type = self._get_mime(adjusted_resource)
 
-                close = "Connection: close\r\n\r\n"
+                    close = "Connection: close\r\n\r\n"
 
-                self.request.send(headers + content_type + close + resource)
-            except:
-                self._send_404(requested_resource)
+                    self.request.send(headers + content_type + close + resource)
+                except:
+                    self._send_404(requested_resource)
         else:
             self._send_404(requested_resource)
 
