@@ -35,15 +35,13 @@ class MyWebServer(SocketServer.BaseRequestHandler):
 
     def _verify_resource(self, requested_resource):
         current_directory = os.path.abspath(os.curdir)
-        return os.path.abspath(requested_resource).startswith(current_directory)
+        data_directory = current_directory + "/www"
+        return os.path.abspath(requested_resource).startswith(data_directory)
 
     def _adjust_resource(self, requested_resource):
         current_directory = os.path.abspath(os.curdir)
         requested_resource = current_directory + "/www" + requested_resource
-        if (requested_resource.endswith("/")):
-            return requested_resource + "index.html"
-        else:
-            return requested_resource
+        return requested_resource
 
     def _create_headers(self):
         return "HTTP/1.1 200 OK\r\n"
@@ -51,7 +49,11 @@ class MyWebServer(SocketServer.BaseRequestHandler):
     def _send_404(self, requested_resource):
         headers = "HTTP/1.1 404 Not Found\r\n\r\n"
 
-        self.request.send(headers)
+        body = ("<html>\n<body>404 - Could not find resource at "
+                + requested_resource
+                + " </body>\n</html>")
+
+        self.request.send(headers + body)
 
     def _get_mime(self, adjusted_resource):
         if (adjusted_resource[-4:] == ".css"):
@@ -61,6 +63,12 @@ class MyWebServer(SocketServer.BaseRequestHandler):
         else:
             return "Content Type: \r\n"
 
+    def _send_302(self, requested_resource):
+        headers = "HTTP/1.1 302 Found\r\n"
+        location = "Location: http://127.0.0.1:8080" + requested_resource + "index.html\r\n\r\n"
+
+        self.request.send(headers + location)
+
     def handle(self):
         self.data = self.request.recv(1024).strip()
         #log.debug("Got a request of: %s\n" % self.data)
@@ -68,8 +76,10 @@ class MyWebServer(SocketServer.BaseRequestHandler):
         split_data = self.data.split(" ")
         requested_resource = split_data[1]
         adjusted_resource = self._adjust_resource(requested_resource)
+        if (adjusted_resource.endswith("/")):
+            self._send_302(requested_resource)
 
-        if (self._verify_resource(adjusted_resource)):
+        elif (self._verify_resource(adjusted_resource)):
             try:
                 resource = open(adjusted_resource).read()
 
