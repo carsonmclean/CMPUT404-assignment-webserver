@@ -75,7 +75,10 @@ class MyWebServer(SocketServer.BaseRequestHandler):
         self.data = self.request.recv(1024).strip()
         #print("Got a request of: %s\n" % self.data)
 
-        split_data = self.data.split(" ")
+	if (self.data):
+	        split_data = self.data.split(" ")
+	else:
+		return
         requested_resource = split_data[1]
         adjusted_resource = self._adjust_resource(requested_resource)
         if (adjusted_resource.endswith("/")):
