@@ -37,6 +37,7 @@ class MyWebServer(SocketServer.BaseRequestHandler):
         return True
 
     def _adjust_resource(self, requested_resource):
+        requested_resource = "www" + requested_resource
         if (requested_resource.endswith("/")):
             return requested_resource + "index.html"
         else:
@@ -52,6 +53,10 @@ class MyWebServer(SocketServer.BaseRequestHandler):
         if (self._verify_resource(requested_resource)):
             adjusted_resource = self._adjust_resource(requested_resource)
             log.debug(adjusted_resource)
+
+            resource = open(adjusted_resource).read()
+
+            self.request.send(resource)
 
 
 if __name__ == "__main__":
