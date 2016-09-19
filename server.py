@@ -1,6 +1,10 @@
 #  coding: utf-8
 import SocketServer
 
+import logging, sys
+logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+log = logging.getLogger('server.py')
+
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos, Carson McLean
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,12 +35,12 @@ class MyWebServer(SocketServer.BaseRequestHandler):
 
     def handle(self):
         self.data = self.request.recv(1024).strip()
-        #print ("Got a request of: %s\n" % self.data)
+        log.debug("Got a request of: %s\n" % self.data)
 
         split_data = self.data.split(" ")
         requested_resource = split_data[1]
 
-        print(requested_resource)
+        log.debug(requested_resource)
 
 
 if __name__ == "__main__":
