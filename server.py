@@ -1,5 +1,5 @@
 #  coding: utf-8
-import SocketServer
+import SocketServer, os
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -33,6 +33,15 @@ log = logging.getLogger('server.py')
 
 class MyWebServer(SocketServer.BaseRequestHandler):
 
+    def _verify_resource(self, requested_resource):
+        return True
+
+    def _adjust_resource(self, requested_resource):
+        if (requested_resource.endswith("/")):
+            return requested_resource + "index.html"
+        else:
+            return requested_resource
+
     def handle(self):
         self.data = self.request.recv(1024).strip()
         log.debug("Got a request of: %s\n" % self.data)
@@ -40,7 +49,9 @@ class MyWebServer(SocketServer.BaseRequestHandler):
         split_data = self.data.split(" ")
         requested_resource = split_data[1]
 
-        log.debug(requested_resource)
+        if (self._verify_resource(requested_resource)):
+            adjusted_resource = self._adjust_resource(requested_resource)
+            log.debug(adjusted_resource)
 
 
 if __name__ == "__main__":
