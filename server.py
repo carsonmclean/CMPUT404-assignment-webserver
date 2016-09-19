@@ -49,7 +49,7 @@ class MyWebServer(SocketServer.BaseRequestHandler):
         return "HTTP/1.1 200 OK\r\n"
 
     def _send_404(self, requested_resource):
-        headers = "HTTP/1.1 404 Not Found\r\n"
+        headers = "HTTP/1.1 404 Not Found\r\n\r\n"
 
         self.request.send(headers)
 
@@ -77,7 +77,7 @@ class MyWebServer(SocketServer.BaseRequestHandler):
 
                 content_type = self._get_mime(adjusted_resource)
 
-                self.request.send(headers + content_type + resource)
+                self.request.send(headers + content_type + "\r\n\r\n" + resource)
             except:
                 self._send_404(requested_resource)
         else:
