@@ -1,5 +1,5 @@
 #  coding: utf-8
-import SocketServer, os
+import SocketServer, os, magic
 
 import logging, sys
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
@@ -53,6 +53,14 @@ class MyWebServer(SocketServer.BaseRequestHandler):
 
         self.request.send(headers)
 
+    def _get_mime(self, adjusted_resource):
+        if (adjusted_resource[-4:] == ".css"):
+            return "Content Type: text/css\r\n"
+        elif (adjusted_resource[-5:] == ".html"):
+            return "Content Type: text/html\r\n"
+        else:
+            return "Content Type: \r\n"
+
     def handle(self):
         self.data = self.request.recv(1024).strip()
         log.debug("Got a request of: %s\n" % self.data)
@@ -64,8 +72,12 @@ class MyWebServer(SocketServer.BaseRequestHandler):
         if (self._verify_resource(adjusted_resource)):
             try:
                 resource = open(adjusted_resource).read()
+
                 headers = self._create_headers()
-                self.request.send(headers + resource)
+
+                content_type = self._get_mime(adjusted_resource)
+
+                self.request.send(headers + content_type + resource)
             except:
                 self._send_404(requested_resource)
         else:
